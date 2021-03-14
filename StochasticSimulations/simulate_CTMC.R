@@ -1,6 +1,8 @@
 # Example simulation of a simple SIS model
 library(GillespieSSA2)
 
+source(sprintf("%s/../functions_useful.R", here::here()))
+
 # Total population
 Pop = 100
 # Initial number of infectious
@@ -22,25 +24,22 @@ reactions <- list(
   reaction("gamma*I", c(S=+1,I=-1), "recovery")
 )
 set.seed(NULL)
-sol <-
-  ssa(
+sol <- ssa(
     initial_state = IC,
     reactions = reactions,
     params = params,
     method = ssa_exact(),
     final_time = t_f,
-    #census_interval = .001,
-    #verbose = TRUE
-  )
+)
 
 #plot_ssa(out)
-png(file = sprintf("%s/one_CTMC_sim.png", 
-                   here::here()),
-    width = 800, height = 600)
+png(file = sprintf("%s/one_CTMC_sim.png", here::here()),
+    width = 1200, height = 800, res = 200)
 plot(sol$time, sol$state[,"I"],
      type = "l",
      xlab = "Time (days)", ylab = "Number infectious")
 dev.off()
+crop_figure(file = sprintf("%s/one_CTMC_sim.png", here::here()))
 
 
 nb_sims = 50
@@ -70,18 +69,26 @@ for (i in 1:nb_sims) {
   val_last_I = as.numeric(sol[[i]]$state[idx_last_I,"I"])
   if (val_last_I == 0) {
     sol[[i]]$colour = "dodgerblue4"
+    sol[[i]]$lwd = 2
   } else {
     sol[[i]]$colour = "black"
+    sol[[i]]$lwd = 0.5
   }
 }
 
 # Now do the plot
+png(file = sprintf("%s/several_CTMC_sims.png", here::here()),
+    width = 1200, height = 800, res = 200)
 plot(sol[[1]]$time, sol[[1]]$state[,"I"],
      xlab = "Time (days)", ylab = "Number infectious",
      ylim = c(0, I_max), type = "l",
-     col = sol[[1]]$colour)
+     col = sol[[1]]$colour, lwd = sol[[1]]$lwd)
 for (i in 2:nb_sims) {
   lines(sol[[i]]$time, sol[[i]]$state[,"I"],
         type = "l",
-        col = sol[[i]]$colour)
+        col = sol[[i]]$colour, lwd = sol[[i]]$lwd)
 }
+dev.off()
+crop_figure(sprintf("%s/several_CTMC_sims.png", here::here()))
+
+
