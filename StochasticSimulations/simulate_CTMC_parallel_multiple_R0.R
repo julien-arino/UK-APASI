@@ -8,9 +8,23 @@
 
 library(GillespieSSA2)
 library(parallel)
+library(dplyr)
+library(latex2exp)
 
 # Source a file with a few helpful functions for plotting (nice axes labels, crop figure)
 source(sprintf("%s/../functions_useful.R", here::here()))
+
+# Make data frame from list of results
+# Assumes all list entries are similar
+make_df_from_list = function(in_list) {
+  names_list = names(in_list[[1]])
+  tmp = list()
+  for (n in names_list) {
+    tmp[[n]] = unlist(lapply(in_list, function(x) x[[n]]))
+  }
+  OUT = do.call(cbind.data.frame, tmp)
+  return(OUT)
+}
 
 # Need a function that runs one simulation and returns a result. While we're at it,
 # we also return an interpolated solution
@@ -67,7 +81,7 @@ params$number_sims = 100
 params_vary = list()
 # For now, we just vary R_0
 i = 1
-for (R_0 in seq(0.5, 2.5, by = 0.1)) {
+for (R_0 in seq(0.5, 3.5, by = 0.05)) {
   for (j in 1:params$number_sims) {
     params_vary[[i]] = list()
     params_vary[[i]]$R_0 = R_0
@@ -101,31 +115,21 @@ if (FALSE) {
                 FUN =  function(x) run_one_sim(x, params))
 }
 
-saveRDS(SIMS, file = sprintf("%s/SIMS.Rds", here::here()))
-SIMS = readRDS(file = sprintf("%s/SIMS.Rds", here::here()))
+#saveRDS(SIMS, file = sprintf("%s/SIMS.Rds", here::here()))
+#SIMS = readRDS(file = sprintf("%s/SIMS.Rds", here::here()))
 
-# # Plot
-# png(file = sprintf("%s/FIGURES/many_CTMC_sims_with_means.png", here::here()),
-#     width = 1200, height = 800, res = 200)
-# plot(mean_I$time, SIMS[[1]]$interp_I$I,
-#      type = "l", lwd = 0.2, 
-#      ylim = c(0, max_I), xaxs = "i",
-#      xlab = "Time (days)", ylab = "Number infectious")
-# for (i in 2:params$number_sims) {
-#   lines(mean_I$time, SIMS[[i]]$interp_I$I,
-#         type = "l", lwd = 0.2)
-# }
-# lines(mean_I$time, mean_I$I_all,
-#       type = "l",
-#       lwd = 5, col = "darkorange4")
-# lines(mean_I$time, mean_I$I_no_extinction,
-#       type = "l",
-#       lwd = 5, col = "red")
-# legend("topleft",
-#        legend = c("Solutions", "Mean", 
-#                   "Mean (not extinct)"),
-#        cex = 0.6,
-#        col = c("black", "darkorange4", "red"),
-#        lty = c(1,1,1), lwd = c(0.5, 2.5, 2.5))
-# dev.off()
-# crop_figure(file = sprintf("%s/FIGURES/many_CTMC_sims_with_means.png", here::here()))
+# Use dplyr syntax: count the number of extinctions (TRUE and FALSE)
+# after grouping by R_0 value
+results = make_df_from_list(SIMS) %>%
+  count(R_0, extinct) %>%
+  filter(extinct == TRUE)
+
+# Plot
+png(file = sprintf("%s/FIGURES/extinctions_fct_R0.png", here::here()),
+    width = 1200, height = 800, res = 200)
+plot(results$R_0, results$n,
+     type = "b", lwd = 2,
+     xlab = TeX("R_0"), ylab = "Percentage extinctions")
+dev.off()
+crop_figure(file = sprintf("%s/FIGURES/extinctions_fct_R0.png", here::here()))
+
