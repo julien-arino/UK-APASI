@@ -103,4 +103,4 @@ lines(mean_I$time, mean_I$I_no_extinction,
       type = "l",
       lwd = 5, col = "red")
 dev.off()
-crop_figure(file = sprintf("%s/many_CTMC_sims_with_means.png", here::here()))
+crop_figure(file = sprintf("%s/FIGURES/many_CTMC_sims_with_means.png", here::here()))

@@ -82,7 +82,7 @@ for (i in 1:length(sol)) {
   }
 }
 
-png(file = sprintf("%s/several_DTMC_sims.png", here::here()),
+png(file = sprintf("%s/FIGURES/several_DTMC_sims.png", here::here()),
     width = 1200, height = 800, res = 200)
 plot(I[[1]]$time, I[[1]]$state,
      type = "l",
@@ -95,4 +95,4 @@ for (i in 2:length(sol)) {
         col = I[[i]]$colour, lwd = I[[i]]$lwd)
 }
 dev.off()
-crop_figure(file = sprintf("%s/several_DTMC_sims.png", here::here()))
+crop_figure(file = sprintf("%s/FIGURES/several_DTMC_sims.png", here::here()))

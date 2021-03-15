@@ -33,13 +33,13 @@ sol <- ssa(
 )
 
 #plot_ssa(out)
-png(file = sprintf("%s/one_CTMC_sim.png", here::here()),
+png(file = sprintf("%s/FIGURES/one_CTMC_sim.png", here::here()),
     width = 1200, height = 800, res = 200)
 plot(sol$time, sol$state[,"I"],
      type = "l",
      xlab = "Time (days)", ylab = "Number infectious")
 dev.off()
-crop_figure(file = sprintf("%s/one_CTMC_sim.png", here::here()))
+crop_figure(file = sprintf("%s/FIGURES/one_CTMC_sim.png", here::here()))
 
 
 nb_sims = 50
@@ -77,7 +77,7 @@ for (i in 1:nb_sims) {
 }
 
 # Now do the plot
-png(file = sprintf("%s/several_CTMC_sims.png", here::here()),
+png(file = sprintf("%s/FIGURES/several_CTMC_sims.png", here::here()),
     width = 1200, height = 800, res = 200)
 plot(sol[[1]]$time, sol[[1]]$state[,"I"],
      xlab = "Time (days)", ylab = "Number infectious",
@@ -89,6 +89,6 @@ for (i in 2:nb_sims) {
         col = sol[[i]]$colour, lwd = sol[[i]]$lwd)
 }
 dev.off()
-crop_figure(sprintf("%s/several_CTMC_sims.png", here::here()))
+crop_figure(sprintf("%s/FIGURES/several_CTMC_sims.png", here::here()))
 
 
