@@ -101,7 +101,7 @@ if (FALSE) {
                 FUN =  function(x) run_one_sim(x, params))
 }
 
-#saveRDS(SIMS, file = sprintf("%s/SIMS.Rds", here::here()))
+saveRDS(SIMS, file = sprintf("%s/SIMS.Rds", here::here()))
 SIMS = readRDS(file = sprintf("%s/SIMS.Rds", here::here()))
 
 # # Plot
