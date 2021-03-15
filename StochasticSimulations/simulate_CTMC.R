@@ -1,6 +1,7 @@
 # Example simulation of a simple SIS model
 library(GillespieSSA2)
 
+# Source a file with a few helpful functions for plotting (nice axes labels, crop figure)
 source(sprintf("%s/../functions_useful.R", here::here()))
 
 # Total population

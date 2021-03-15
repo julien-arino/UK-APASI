@@ -46,58 +46,22 @@ make_y_axis <- function(yrange) {
 # PLOT_HR_YAXIS
 #
 # Plot data using a human readable y-axis
-plot_hr_yaxis <- function(x, y, ...) {
-  y_range = range(y, na.rm = TRUE)
+plot_hr_yaxis <- function(y_range = NULL, x, y, ...) {
+  if (is.null(y_range)) {
+    # A yrange was not provided, work it out from the data
+    y_range = range(y, na.rm = TRUE)
+  }
   y_axis <- make_y_axis(y_range)
   plot(x,y*y_axis$factor,
+       ylim = y_range*y_axis$factor,
        yaxt = "n", ...)
   axis(2, at = y_axis$ticks,
        labels = y_axis$labels,
        las = 1, cex.axis=0.8)
+  return(y_axis)
 }
 
-# PLOT_HR_XAXIS_YAXIS
-#
-# Plot data using a human readable y-axis
-# x must be sim_constants$time$dateFull
-plot_hr_xaxis_yaxis <- function(x, y, ...) {
-  
-  y_range = range(y, na.rm = TRUE)
-  y_axis <- make_y_axis(y_range)
-  
-  x_axis = make_x_axis_week(x)
-  # print(x_axis$labels)
-  # print(x_axis$ticks)
-  
-  plot(x,y*y_axis$factor,
-       yaxt = "n", ...)
-  axis(1, at = x_axis$ticks,
-       labels = x_axis$labels,
-       las=2, cex.axis=0.8)
-  axis(2, at = y_axis$ticks,
-       labels = y_axis$labels,
-       las = 1, cex.axis=0.8)
-}
-
-# PLOT_HR_XAXIS
-#
-# Plot data using a human readable y-axis
-# x must be sim_constants$time$dateFull
-plot_hr_xaxis <- function(x, y, ...) {
-  
-  x_axis = make_x_axis_week(x)
-  # y_range = range(y)
-  # y_ticks = pretty(ylim)
-  
-  plot(x,y,yaxt = "n", ...)
-  axis(1, at = x_axis$ticks,
-       labels = x_axis$labels,
-       las=2, cex.axis=0.8)
-  # axis(2, at = y_ticks,
-       # labels = as.numeric(y_ticks),
-       # las = 1, cex.axis=0.8)
-}
-
+# Crop a figure (get rid of extra white space)
 # Assumes you have Imagemagick installed and usable from the command line (so in the PATH)
 crop_figure = function(file) {
   fileName = tools::file_path_sans_ext(file)

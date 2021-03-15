@@ -1,6 +1,9 @@
 # Example simulation of a simple SIS model
 library(DTMCPack)
 
+# Source a file with a few helpful functions for plotting (nice axes labels, crop figure)
+source(sprintf("%s/../functions_useful.R", here::here()))
+
 # Recreate state from solution
 number_I = function(sol) {
   time = 1:dim(sol)[2]

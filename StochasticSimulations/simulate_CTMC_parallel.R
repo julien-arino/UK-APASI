@@ -3,6 +3,9 @@ library(GillespieSSA2)
 library(parallel)
 library(deSolve)
 
+# Source a file with a few helpful functions for plotting (nice axes labels, crop figure)
+source(sprintf("%s/../functions_useful.R", here::here()))
+
 # Need a function that runs one simulation and returns a result. While we're at it,
 # we also return an interpolated solution
 run_one_sim = function(params) {
@@ -33,19 +36,18 @@ run_one_sim = function(params) {
 # The ODE, in order to compare with solutions to the CTMC
 rhs_SIS_ODE = function(t, x, p) {
   with(as.list(x), {
-    change = p$gamma*I-p$beta*S*I
-    dS = change
-    dI = -change
+    dS = p$gamma*I-p$beta*S*I
+    dI = p$beta*S*I-p$gamma*I
     list(c(dS, dI))
   })
 }
 
 # To run in parallel, it useful to put parameters in a list
 params = list()
-params$Pop = 100
+params$Pop = 100000
 params$gamma = 1/5
-params$R_0 = 1.5
-params$t_f = 120
+params$R_0 = 2.5
+params$t_f = 150
 params$I_0 = 2
 # R0 would be (beta/gamma)*S0, so beta=R0*gamma/S0
 params$beta = params$R_0*params$gamma/(params$Pop-params$I_0)
@@ -54,7 +56,6 @@ params$beta = params$R_0*params$gamma/(params$Pop-params$I_0)
 params$number_sims = 100
 
 
-tictoc::tic()
 # Detect number of cores (often good to use all but 1, i.e. detectCores()-1)
 no_cores <- detectCores()
 # Initiate cluster
@@ -73,13 +74,13 @@ SIMS = parLapply(cl = cl,
                  X = 1:params$number_sims, 
                  fun =  function(x) run_one_sim(params))
 stopCluster(cl)
-tictoc::toc()
 
 # The following is if running iteratively rather than in parallel
-tictoc::tic()
-SIMS = lapply(X = 1:params$number_sims, 
-              FUN =  function(x) run_one_sim(params))
-tictoc::toc()
+if (FALSE) {
+  SIMS = lapply(X = 1:params$number_sims, 
+                FUN =  function(x) run_one_sim(params))
+}
+
 
 mean_I = list(time = SIMS[[1]]$interp_I$time,
               I_all = rep(0, length(SIMS[[1]]$interp_I$time)),
@@ -87,6 +88,7 @@ mean_I = list(time = SIMS[[1]]$interp_I$time,
 nb_sims_with_NA = 0
 for (i in 1:params$number_sims) {
   if (any(is.na(SIMS[[i]]$interp_I$I))) {
+    # If we do not condition on extinction, we need to set NAs to 0
     tmp = SIMS[[i]]$interp_I$I
     tmp[which(is.na(tmp))] = 0
     mean_I$I_all = mean_I$I_all+tmp
