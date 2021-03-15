@@ -85,6 +85,7 @@ no_cores <- detectCores()
 values_I_0 = c(1, 2, 3, 4, 5)
 # Run main computation loop (iterative part)
 for (I_0 in values_I_0) {
+  writeLines(paste0("I_0=",I_0))
   # Initiate cluster
   cl <- makeCluster(no_cores)
   # Export needed library to cluster
