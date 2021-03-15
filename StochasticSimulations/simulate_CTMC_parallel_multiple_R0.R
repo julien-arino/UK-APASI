@@ -29,8 +29,10 @@ make_df_from_list = function(in_list) {
 # Need a function that runs one simulation and returns a result. While we're at it,
 # we also return an interpolated solution
 run_one_sim = function(params_vary, params) {
-  IC <- c(S = (params$Pop-params$I_0), I = params$I_0)
   R_0 = params_vary$R_0
+  I_0 = params_vary$I_0
+  # Initial conditions
+  IC <- c(S = (params$Pop-I_0), I = I_0)
   # R0=(beta/gamma)*S0, so beta=R0*gamma/S0
   beta = R_0*params$gamma/(params$Pop-params$I_0)
   params_local <- c(gamma = params$gamma, beta = beta)
@@ -56,6 +58,7 @@ run_one_sim = function(params_vary, params) {
   # To lighten the load, select only a few items to return
   OUT = list()
   OUT$R_0 = R_0
+  OUT$I_0 = I_0
   OUT$final_time = sol$time[length(sol$time)]
   OUT$final_I = sol$state[length(sol$time),"I"]
   OUT$extinct = sol$extinct
@@ -65,7 +68,7 @@ run_one_sim = function(params_vary, params) {
 
 # To run in parallel, it useful to put parameters in a list
 params = list()
-params$Pop = 100000
+params$Pop = 1000
 params$gamma = 1/5
 params$R_0 = 2.5
 params$t_f = 150
@@ -74,18 +77,21 @@ params$I_0 = 2
 params$beta = params$R_0*params$gamma/(params$Pop-params$I_0)
 # Number of simulations. We may want to save all simulation parameters later,
 # so we add it here
-params$number_sims = 100
+params$number_sims = 10
 
 # To process efficiently in parallel, we make a list with the different parameter values
 # we want to change, which will fed by parLapply to run_one_sim
 params_vary = list()
-# For now, we just vary R_0
+# Vary R_0 and I_0
 i = 1
-for (R_0 in seq(0.5, 3.5, by = 0.05)) {
-  for (j in 1:params$number_sims) {
-    params_vary[[i]] = list()
-    params_vary[[i]]$R_0 = R_0
-    i = i+1
+for (R_0 in seq(0.5, 3.5, by = 0.2)) {
+  for (I_0 in c(1, 2, 5, 10)) {
+    for (j in 1:params$number_sims) {
+      params_vary[[i]] = list()
+      params_vary[[i]]$R_0 = R_0
+      params_vary[[i]]$I_0 = I_0
+      i = i+1
+    }
   }
 }
 
@@ -121,7 +127,7 @@ if (FALSE) {
 # Use dplyr syntax: count the number of extinctions (TRUE and FALSE)
 # after grouping by R_0 value
 results = make_df_from_list(SIMS) %>%
-  count(R_0, extinct) %>%
+  count(I_0, R_0, extinct) %>%
   filter(extinct == TRUE)
 
 # Plot
