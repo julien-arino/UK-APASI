@@ -79,23 +79,6 @@ params$beta = params$R_0*params$gamma/(params$Pop-params$I_0)
 # so we add it here
 params$number_sims = 100
 
-# To process efficiently in parallel, we make a list with the different parameter values
-# we want to change, which will fed by parLapply to run_one_sim
-params_vary = list()
-# Vary R_0 and I_0
-i = 1
-for (R_0 in seq(0.5, 3.5, by = 0.05)) {
-  for (I_0 in c(1, 2, 5)) {
-    for (j in 1:params$number_sims) {
-      params_vary[[i]] = list()
-      params_vary[[i]]$R_0 = R_0
-      params_vary[[i]]$I_0 = I_0
-      i = i+1
-    }
-  }
-}
-
-
 # Detect number of cores (often good to use all but 1, i.e. detectCores()-1)
 no_cores <- detectCores()
 # Initiate cluster
@@ -109,19 +92,32 @@ clusterExport(cl,
               c("params",
                 "run_one_sim"),
               envir = .GlobalEnv)
-# Run computation
-SIMS = parLapply(cl = cl, 
+# Values of I_0 we consider (we do those sequentially)
+values_I_0 = c(1, 2, 5)
+# Run main computation loop (iterative part)
+for (I_0 in values_I_0) {
+  # To process efficiently in parallel, we make a list with the different parameter values
+  # we want to change, which will fed by parLapply to run_one_sim
+  params_vary = list()
+  # Vary R_0 and I_0
+  i = 1
+  for (R_0 in seq(0.5, 3.5, by = 0.05)) {
+    for (j in 1:params$number_sims) {
+      params_vary[[i]] = list()
+      params_vary[[i]]$R_0 = R_0
+      params_vary[[i]]$I_0 = I_0
+      i = i+1
+    }
+  }
+  # Run main computation (parallel part)
+  SIMS = parLapply(cl = cl, 
                  X = params_vary, 
                  fun =  function(x) run_one_sim(x, params))
+  saveRDS(SIMS, file = sprintf("%s/RESULTS/SIMS_I0_%d.Rds", here::here(), I_0))
+}
 stopCluster(cl)
 
-# The following is if running iteratively rather than in parallel
-if (FALSE) {
-  SIMS = lapply(X = params_vary, 
-                FUN =  function(x) run_one_sim(x, params))
-}
 
-saveRDS(SIMS, file = sprintf("%s/SIMS.Rds", here::here()))
 #SIMS = readRDS(file = sprintf("%s/SIMS.Rds", here::here()))
 
 # Use dplyr syntax: count the number of extinctions (TRUE and FALSE)
