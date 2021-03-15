@@ -85,7 +85,7 @@ params_vary = list()
 # Vary R_0 and I_0
 i = 1
 for (R_0 in seq(0.5, 3.5, by = 0.05)) {
-  for (I_0 in c(1, 2, 5, 10)) {
+  for (I_0 in c(1, 2, 5)) {
     for (j in 1:params$number_sims) {
       params_vary[[i]] = list()
       params_vary[[i]]$R_0 = R_0
@@ -121,7 +121,7 @@ if (FALSE) {
                 FUN =  function(x) run_one_sim(x, params))
 }
 
-#saveRDS(SIMS, file = sprintf("%s/SIMS.Rds", here::here()))
+saveRDS(SIMS, file = sprintf("%s/SIMS.Rds", here::here()))
 #SIMS = readRDS(file = sprintf("%s/SIMS.Rds", here::here()))
 
 # Use dplyr syntax: count the number of extinctions (TRUE and FALSE)
