@@ -1,6 +1,7 @@
 # Example CTMC simulation of a simple SIS model, parallel version
 library(GillespieSSA2)
 library(parallel)
+library(deSolve)
 
 # Need a function that runs one simulation and returns a result. While we're at it,
 # we also return an interpolated solution
@@ -29,12 +30,22 @@ run_one_sim = function(params) {
   return(sol)
 }
 
+# The ODE, in order to compare with solutions to the CTMC
+rhs_SIS_ODE = function(t, x, p) {
+  with(as.list(x), {
+    change = p$gamma*I-p$beta*S*I
+    dS = change
+    dI = -change
+    list(c(dS, dI))
+  })
+}
+
 # To run in parallel, it useful to put parameters in a list
 params = list()
 params$Pop = 100
 params$gamma = 1/5
 params$R_0 = 1.5
-params$t_f = 180
+params$t_f = 120
 params$I_0 = 2
 # R0 would be (beta/gamma)*S0, so beta=R0*gamma/S0
 params$beta = params$R_0*params$gamma/(params$Pop-params$I_0)
@@ -43,8 +54,9 @@ params$beta = params$R_0*params$gamma/(params$Pop-params$I_0)
 params$number_sims = 100
 
 
-# Detect number of cores, use all but 1
-no_cores <- detectCores()-1
+tictoc::tic()
+# Detect number of cores (often good to use all but 1, i.e. detectCores()-1)
+no_cores <- detectCores()
 # Initiate cluster
 cl <- makeCluster(no_cores)
 # Export needed library to cluster
@@ -61,11 +73,13 @@ SIMS = parLapply(cl = cl,
                  X = 1:params$number_sims, 
                  fun =  function(x) run_one_sim(params))
 stopCluster(cl)
+tictoc::toc()
 
 # The following is if running iteratively rather than in parallel
-# SIMS = parLapply(cl = cl, 
-#                  X = 1:params$number_sims, 
-#                  fun =  function(x) sim_single_introduction(X,sim_constants))
+tictoc::tic()
+SIMS = lapply(X = 1:params$number_sims, 
+              FUN =  function(x) run_one_sim(params))
+tictoc::toc()
 
 mean_I = list(time = SIMS[[1]]$interp_I$time,
               I_all = rep(0, length(SIMS[[1]]$interp_I$time)),
@@ -86,21 +100,40 @@ mean_I$I_all = mean_I$I_all/params$number_sims
 mean_I$I_no_extinction = mean_I$I_no_extinction/nb_sims_with_NA
 # For plot, find max of I
 max_I = max(unlist(lapply(SIMS, function(x) max(x$interp_I$I, na.rm = TRUE))))
+
+
+# Now simulate the ODE
+IC <- c(S = (params$Pop-params$I_0), I = params$I_0)
+sol_ODE = ode(y = IC,
+              func = rhs_SIS_ODE,
+              times = seq(from = 0, to = params$t_f, by = 0.1),
+              parms = params)
+
 # Plot
-png(file = sprintf("%s/many_CTMC_sims_with_means.png", here::here()),
+png(file = sprintf("%s/FIGURES/many_CTMC_sims_with_means.png", here::here()),
     width = 1200, height = 800, res = 200)
 plot(mean_I$time, SIMS[[1]]$interp_I$I,
-     type = "l", ylim = c(0, max_I), lwd = 0.2,
+     type = "l", lwd = 0.2, 
+     ylim = c(0, max_I), xaxs = "i",
      xlab = "Time (days)", ylab = "Number infectious")
 for (i in 2:params$number_sims) {
   lines(mean_I$time, SIMS[[i]]$interp_I$I,
         type = "l", lwd = 0.2)
 }
 lines(mean_I$time, mean_I$I_all,
-      type = "l", lty = 2,
-      lwd = 5, col = "red")
+      type = "l",
+      lwd = 5, col = "darkorange4")
 lines(mean_I$time, mean_I$I_no_extinction,
       type = "l",
       lwd = 5, col = "red")
+lines(sol_ODE[,"time"], sol_ODE[,"I"],
+      type = "l",
+      lwd = 5, col = "dodgerblue4")
+legend("topleft",
+       legend = c("Solutions", "Mean", 
+                  "Mean (not extinct)", "ODE"),
+       cex = 0.6,
+       col = c("black", "darkorange4", "red", "dodgerblue"),
+       lty = c(1,1,1,1), lwd = c(0.5, 2.5, 2.5, 2.5))
 dev.off()
 crop_figure(file = sprintf("%s/FIGURES/many_CTMC_sims_with_means.png", here::here()))
