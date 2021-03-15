@@ -86,17 +86,6 @@ values_I_0 = c(1, 2, 3, 4, 5)
 # Run main computation loop (iterative part)
 for (I_0 in values_I_0) {
   writeLines(paste0("I_0=",I_0))
-  # Initiate cluster
-  cl <- makeCluster(no_cores)
-  # Export needed library to cluster
-  clusterEvalQ(cl,{
-    library(GillespieSSA2)
-  })
-  # Export needed variable and function to cluster
-  clusterExport(cl,
-                c("params",
-                  "run_one_sim"),
-                envir = .GlobalEnv)
   # To process efficiently in parallel, we make a list with the different parameter values
   # we want to change, which will fed by parLapply to run_one_sim
   params_vary = list()
@@ -110,6 +99,18 @@ for (I_0 in values_I_0) {
       i = i+1
     }
   }
+  # Initiate cluster
+  cl <- makeCluster(no_cores)
+  # Export needed library to cluster
+  clusterEvalQ(cl,{
+    library(GillespieSSA2)
+  })
+  # Export needed variable and function to cluster
+  clusterExport(cl,
+                c("params",
+                  "run_one_sim",
+                  "params_vary"),
+                envir = .GlobalEnv)
   # Run main computation (parallel part)
   SIMS = parLapply(cl = cl, 
                  X = params_vary, 
