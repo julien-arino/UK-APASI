@@ -1,5 +1,11 @@
 # Example CTMC simulation of a simple SIS model, parallel version, with multiple R_0 values
 # Here, we just want to know how many simulations see extinction, so we do minimal post-processing
+
+# BEWARE !!!
+#
+# With 100 sims and the number of values used, this can either be very lengthy on a machine with low thread
+# count or very expensive in RAM on a machine with high thread count..
+
 library(GillespieSSA2)
 library(parallel)
 
@@ -35,6 +41,7 @@ run_one_sim = function(params_vary, params) {
   }
   # To lighten the load, select only a few items to return
   OUT = list()
+  OUT$R_0 = R_0
   OUT$final_time = sol$time[length(sol$time)]
   OUT$final_I = sol$state[length(sol$time),"I"]
   OUT$extinct = sol$extinct
@@ -94,7 +101,8 @@ if (FALSE) {
                 FUN =  function(x) run_one_sim(x, params))
 }
 
-saveRDS(SIMS, file = sprintf("%s/SIMS.Rds", here::here()))
+#saveRDS(SIMS, file = sprintf("%s/SIMS.Rds", here::here()))
+SIMS = readRDS(file = sprintf("%s/SIMS.Rds", here::here()))
 
 # # Plot
 # png(file = sprintf("%s/FIGURES/many_CTMC_sims_with_means.png", here::here()),
