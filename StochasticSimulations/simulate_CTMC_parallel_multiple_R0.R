@@ -81,27 +81,27 @@ params$number_sims = 100
 
 # Detect number of cores (often good to use all but 1, i.e. detectCores()-1)
 no_cores <- detectCores()
-# Initiate cluster
-cl <- makeCluster(no_cores)
-# Export needed library to cluster
-clusterEvalQ(cl,{
-  library(GillespieSSA2)
-})
-# Export needed variable and function to cluster
-clusterExport(cl,
-              c("params",
-                "run_one_sim"),
-              envir = .GlobalEnv)
 # Values of I_0 we consider (we do those sequentially)
 values_I_0 = c(1, 2, 3, 4, 5)
 # Run main computation loop (iterative part)
 for (I_0 in values_I_0) {
+  # Initiate cluster
+  cl <- makeCluster(no_cores)
+  # Export needed library to cluster
+  clusterEvalQ(cl,{
+    library(GillespieSSA2)
+  })
+  # Export needed variable and function to cluster
+  clusterExport(cl,
+                c("params",
+                  "run_one_sim"),
+                envir = .GlobalEnv)
   # To process efficiently in parallel, we make a list with the different parameter values
   # we want to change, which will fed by parLapply to run_one_sim
   params_vary = list()
   # Vary R_0 and I_0
   i = 1
-  for (R_0 in seq(0.5, 3.5, by = 0.05)) {
+  for (R_0 in c(seq(0.5, 0.95, by = 0.05), seq(1.05, 3, by = 0.05))) {
     for (j in 1:params$number_sims) {
       params_vary[[i]] = list()
       params_vary[[i]]$R_0 = R_0
@@ -113,9 +113,9 @@ for (I_0 in values_I_0) {
   SIMS = parLapply(cl = cl, 
                  X = params_vary, 
                  fun =  function(x) run_one_sim(x, params))
+  stopCluster(cl)
   saveRDS(SIMS, file = sprintf("%s/RESULTS/SIMS_I0_%d.Rds", here::here(), I_0))
 }
-stopCluster(cl)
 
 
 # #SIMS = readRDS(file = sprintf("%s/SIMS.Rds", here::here()))
