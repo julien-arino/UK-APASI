@@ -33,8 +33,13 @@ run_one_sim = function(params_vary, params) {
   } else {
     sol$extinct = FALSE
   }
+  # To lighten the load, select only a few items to return
+  OUT = list()
+  OUT$final_time = sol$time[length(sol$time)]
+  OUT$final_I = sol$state[length(sol$time),"I"]
+  OUT$extinct = sol$extinct
   # Return result
-  return(sol)
+  return(OUT)
 }
 
 # To run in parallel, it useful to put parameters in a list
