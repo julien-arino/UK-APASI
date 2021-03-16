@@ -7,3 +7,9 @@ Simple illustration of the use of `deSolve` to plot several solutions to the SIS
 
 # `simulate_DTMC.R`
 Simulation of the SIS as a discrete-time Markov chain using a random walk. Demonstrates the use of the libraries `DTMCPack` and `markovchain`.
+
+# `simulate_CTMC.R`
+Simulation of the SIS as a continuous-time Markov chain, using `GillespieSSA2`.
+
+# `simulate_CTMC_parallel.R`
+Same as above but parallelised.
