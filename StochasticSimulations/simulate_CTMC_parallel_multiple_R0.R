@@ -33,6 +33,8 @@ run_one_sim = function(params_vary, params) {
   # R0=(beta/gamma)*S0, so beta=R0*gamma/S0
   beta = R_0*params$gamma/(params$Pop-I_0)
   params_local <- list(gamma = params$gamma, beta = beta)
+  # Reactions and rates could be defined only a single time outside of this function and passed as arguments,
+  # this would save some time. Do it if things are too slow.
   reactions_effect <- list(
     # propensity function effects name for reaction
     c(S=-1,I=+1),  # New infection
@@ -43,13 +45,25 @@ run_one_sim = function(params_vary, params) {
              p$gamma*x["I"]))
   }
   set.seed(NULL)
-  sol <- ssa.adaptivetau(
-    init.values = IC,
-    transitions = reactions_effect,
-    rateFunc = reactions_rates,
-    params = params_local,
-    tf = params$t_f
-  )
+  # Set the following test to TRUE to use adaptive tau, FALSE to use classic Gillespie.
+  # The latter is much slower.
+  if (FALSE) {
+    sol <- ssa.adaptivetau(
+      init.values = IC,
+      transitions = reactions_effect,
+      rateFunc = reactions_rates,
+      params = params_local,
+      tf = params$t_f
+    )
+  } else {
+    sol <- ssa.exact(
+      init.values = IC,
+      transitions = reactions_effect,
+      rateFunc = reactions_rates,
+      params = params_local,
+      tf = params$t_f
+    )
+  }
   # Number of time points generated
   nb_time_points = dim(sol)[1]
   # To lighten the load, select only a few items to return
