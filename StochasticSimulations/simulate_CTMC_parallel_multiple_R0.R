@@ -36,17 +36,16 @@ run_one_sim = function(params_vary, params) {
   # Initial conditions
   IC <- c(S = (params$Pop-I_0), I = I_0)
   # R0=(beta/gamma)*S0, so beta=R0*gamma/S0
-  beta = R_0*params$gamma/(params$Pop-params$I_0)
-  params_local <- c(gamma = params$gamma, beta = beta)
+  beta = R_0*params$gamma/(params$Pop-I_0)
+  params_local <- list(gamma = params$gamma, beta = beta)
   reactions_effect <- list(
     # propensity function effects name for reaction
     c(S=-1,I=+1),  # New infection
     c(S=+1,I=-1)   # Recovery
   )
-  reactions_rates <- function(x, params, t) {
-    # 
-    return(c(params$beta*x["S"]*x["I"],
-             params$gamma*x["I"]))
+  reactions_rates <- function(x, p, t) {
+    return(c(p$beta*x["S"]*x["I"],
+             p$gamma*x["I"]))
   }
   set.seed(NULL)
   sol <- ssa.adaptivetau(
@@ -56,19 +55,19 @@ run_one_sim = function(params_vary, params) {
     params = params_local,
     tf = params$t_f
   )
-  # If the final time is less than t_f, we've hit extinction
-  if (sol$state[dim(sol$state)[1],"I"] == 0) {
-    sol$extinct = TRUE
-  } else {
-    sol$extinct = FALSE
-  }
+  # Number of time points generated
+  nb_time_points = dim(sol)[1]
   # To lighten the load, select only a few items to return
   OUT = list()
   OUT$R_0 = R_0
   OUT$I_0 = I_0
-  OUT$final_time = sol$time[length(sol$time)]
-  OUT$final_I = sol$state[length(sol$time),"I"]
-  OUT$extinct = sol$extinct
+  OUT$final_I = sol[nb_time_points,"I"]
+  # If I=0 at the final time, we've hit extinction
+  if (sol[nb_time_points,"I"] == 0) {
+    OUT$extinct = TRUE
+  } else {
+    OUT$extinct = FALSE
+  }
   # Return result
   return(OUT)
 }
@@ -110,7 +109,7 @@ for (I_0 in values_I_0) {
   cl <- makeCluster(no_cores)
   # Export needed library to cluster
   clusterEvalQ(cl,{
-    library(GillespieSSA2)
+    library(adaptivetau)
   })
   # Export needed variable and function to cluster
   clusterExport(cl,
