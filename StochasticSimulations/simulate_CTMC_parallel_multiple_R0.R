@@ -1,12 +1,14 @@
 # Example CTMC simulation of a simple SIS model, parallel version, with multiple R_0 values
 # Here, we just want to know how many simulations see extinction, so we do minimal post-processing
 
+# This version uses adaptivetau rather than GillespieSSA2
+
 # BEWARE !!!
 #
 # With 100 sims and the number of values used, this can either be very lengthy on a machine with low thread
 # count or very expensive in RAM on a machine with high thread count..
 
-library(GillespieSSA2)
+library(adaptivetau)
 library(parallel)
 library(dplyr)
 library(latex2exp)
@@ -36,18 +38,23 @@ run_one_sim = function(params_vary, params) {
   # R0=(beta/gamma)*S0, so beta=R0*gamma/S0
   beta = R_0*params$gamma/(params$Pop-params$I_0)
   params_local <- c(gamma = params$gamma, beta = beta)
-  reactions <- list(
+  reactions_effect <- list(
     # propensity function effects name for reaction
-    reaction("beta*S*I", c(S=-1,I=+1), "new_infection"),
-    reaction("gamma*I", c(S=+1,I=-1), "recovery")
+    c(S=-1,I=+1),  # New infection
+    c(S=+1,I=-1)   # Recovery
   )
+  reactions_rates <- function(x, params, t) {
+    # 
+    return(c(params$beta*x["S"]*x["I"],
+             params$gamma*x["I"]))
+  }
   set.seed(NULL)
-  sol <- ssa(
-    initial_state = IC,
-    reactions = reactions,
+  sol <- ssa.adaptivetau(
+    init.values = IC,
+    transitions = reactions_effect,
+    rateFunc = reactions_rates,
     params = params_local,
-    method = ssa_exact(),
-    final_time = params$t_f
+    tf = params$t_f
   )
   # If the final time is less than t_f, we've hit extinction
   if (sol$state[dim(sol$state)[1],"I"] == 0) {
