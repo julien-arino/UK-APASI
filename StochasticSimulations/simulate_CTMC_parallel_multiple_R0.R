@@ -3,11 +3,6 @@
 
 # This version uses adaptivetau rather than GillespieSSA2
 
-# BEWARE !!!
-#
-# With 100 sims and the number of values used, this can either be very lengthy on a machine with low thread
-# count or very expensive in RAM on a machine with high thread count..
-
 library(adaptivetau)
 library(parallel)
 library(dplyr)
@@ -83,7 +78,7 @@ params$I_0 = 2
 params$beta = params$R_0*params$gamma/(params$Pop-params$I_0)
 # Number of simulations. We may want to save all simulation parameters later,
 # so we add it here
-params$number_sims = 100
+params$number_sims = 1000
 
 # To process efficiently in parallel, we make a list with the different parameter values
 # we want to change, which will fed by parLapply to run_one_sim
