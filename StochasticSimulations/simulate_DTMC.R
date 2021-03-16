@@ -16,7 +16,7 @@ number_I = function(sol) {
 
 
 # Total population
-Pop = 100
+Pop = 10
 # Initial number of infectious
 I_0 = 2
 # Parameters
@@ -32,26 +32,28 @@ Delta_t = 1
 # Prepare I vector
 IC = mat.or.vec(nr = (Pop+1), nc = 1)
 # Make the transition matrix
-T = mat.or.vec(nr = length(IC), nc = length(IC))
+T = mat.or.vec(nr = (Pop+1), nc = (Pop+1))
 for (row in 2:(dim(T)[1]-1)) {
+  I = row-1
   # Recoveries
-  mv_right = gamma*row*Delta_t
+  mv_right = gamma*I*Delta_t
   # Infections
-  mv_left = beta*row*(Pop-row)*Delta_t
+  mv_left = beta*I*(Pop-I)*Delta_t
   # Fill up the matrix
   T[row,(row-1)] = mv_right
   T[row,(row+1)] = mv_left
 }
-# When we get to the total population, we bounce back
-T[(Pop+1),Pop] = 1
+# Last row only has move left
+T[(Pop+1),Pop] = gamma*(Pop)*Delta_t
 # Check that we don't have too large values
-if (max(T)>1) {
-  writeLines("max(T)>1, scaling")
-  max_T = max(T)
+if (max(rowSums(T))>1) {
+  writeLines("max(rowSums(T))>1, scaling")
+  max_T = max(rowSums(T))
   T = T/max_T
 }
 diag(T) = 1-rowSums(T)
 
+library(markovchain)
 
 # Initial condition
 # By putting all weight in one compartment, we fix an initial condition
@@ -99,3 +101,23 @@ for (i in 2:length(sol)) {
 }
 dev.off()
 crop_figure(file = sprintf("%s/FIGURES/several_DTMC_sims.png", here::here()))
+
+
+### An example of using the markovchain package
+library(markovchain)
+
+# The transition matrix is already ready, so we just need to incorporate it.
+# We also need to name the states
+mcSIS <- new("markovchain", 
+             states = sprintf("I_%d", 0:Pop),
+             transitionMatrix = T,
+             name = "SIS")
+
+# For fun, plot the chain digraph
+png(file = sprintf("%s/FIGURES/DTMC_plot.png", here::here()),
+    width = 1200, height = 800, res = 200)
+plot(mcSIS)
+dev.off()
+crop_figure(sprintf("%s/FIGURES/DTMC_plot.png", here::here()))
+
+meanAbsorptionTime(mcSIS)
