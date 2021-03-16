@@ -47,7 +47,7 @@ run_one_sim = function(params_vary, params) {
   set.seed(NULL)
   # Set the following test to TRUE to use adaptive tau, FALSE to use classic Gillespie.
   # The latter is much slower.
-  if (FALSE) {
+  if (TRUE) {
     sol <- ssa.adaptivetau(
       init.values = IC,
       transitions = reactions_effect,
