@@ -1,4 +1,5 @@
-# Example simulation of a simple SIS model
+# Example simulation of a simple SIS model. In this version, we use a small time step and
+# thus need to scale time accordingly.
 library(DTMCPack)
 
 # Source a file with a few helpful functions for plotting (nice axes labels, crop figure)
@@ -114,10 +115,10 @@ mcSIS <- new("markovchain",
              name = "SIS")
 
 # For fun, plot the chain digraph
-png(file = sprintf("%s/FIGURES/DTMC_digraph.png", here::here()),
+png(file = sprintf("%s/FIGURES/DTMC_plot.png", here::here()),
     width = 1200, height = 800, res = 200)
 plot(mcSIS)
 dev.off()
-crop_figure(sprintf("%s/FIGURES/DTMC_digraph.png", here::here()))
+crop_figure(sprintf("%s/FIGURES/DTMC_plot.png", here::here()))
 
 meanAbsorptionTime(mcSIS)
