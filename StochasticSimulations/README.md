@@ -8,13 +8,20 @@ Simple illustration of the use of `deSolve` to plot several solutions to the SIS
 ![width:400px](https://github.com/julien-arino/UK-APASI/blob/7db02e07e5af2259d578317b89c0db9080f945e8/StochasticSimulations/FIGURES/ODE_SIS.png)
 
 ## `simulate_DTMC.R`
-Simulation of the SIS as a discrete-time Markov chain using a random walk. Demonstrates the use of the libraries `DTMCPack` and `markovchain`.
+Simulation of the SIS as a discrete-time Markov chain using a random walk. Demonstrates the use of the libraries `DTMCPack` and `markovchain`. Among other things, produces the following figure.
+
+![width:400px](https://github.com/julien-arino/UK-APASI/blob/24d5ecb3a64c94da18d2f0b48e2b0ee36b2bfcb4/StochasticSimulations/FIGURES/several_DTMC_sims.png)
+
 
 ## `simulate_CTMC.R`
-Simulation of the SIS as a continuous-time Markov chain, using `GillespieSSA2`.
+Simulation of the SIS as a continuous-time Markov chain, using `GillespieSSA2`. Produces a figure such as the following.
+
+![width:300px](https://github.com/julien-arino/UK-APASI/blob/7db02e07e5af2259d578317b89c0db9080f945e8/StochasticSimulations/FIGURES/several_CTMC_sims.png)
 
 ## `simulate_CTMC_parallel.R`
-Same as above but parallelised.
+Same as above but parallelised. Also plot the mean, mean conditioned on non-extinction as well as solutions of the ODE, as in the following figure.
+
+![width:300px](https://github.com/julien-arino/UK-APASI/blob/24d5ecb3a64c94da18d2f0b48e2b0ee36b2bfcb4/StochasticSimulations/FIGURES/many_CTMC_sims_with_means.png)
 
 ## `simulate_CTMC_parallel_multiple_R0.R`
 Implements what would normally be a double loop as a list parsed in parallel. Also uses `adatptivetau` instead of `GillespieSSA2` for illustration. Gives the following figure
