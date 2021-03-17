@@ -5,7 +5,7 @@ Note: for the function `here::here()` used to say where to save the files to wor
 ## `simulate_ODE.R`
 Simple illustration of the use of `deSolve` to plot several solutions to the SIS epidemic model. Produces the following figure.
 
-![](FIGURES/ODE_SIS.png)
+![](FIGURES/ODE_SIS.png){:height="200px" width="500px"}
 
 ## `simulate_DTMC.R` and `simulate_DTMC_small_time_step.R`
 Simulation of the SIS as a discrete-time Markov chain using a random walk. Demonstrates the use of the libraries `DTMCPack` and `markovchain`. Among other things, produces the following figure (using the version with small time step).
