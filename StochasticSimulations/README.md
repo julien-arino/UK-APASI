@@ -26,6 +26,6 @@ Same as above but parallelised. Also plot the mean, mean conditioned on non-exti
 ## `simulate_CTMC_parallel_multiple_R0.R`
 Implements what would normally be a double loop as a list parsed in parallel. Also uses `adatptivetau` instead of `GillespieSSA2` for illustration. Gives the following figure
 
-![width:400px](https://github.com/julien-arino/UK-APASI/blob/298796a1e3c675aa7d0f03e08b482ff2c68a412c/StochasticSimulations/FIGURES/extinctions_fct_R0.png)
+![width:400px](StochasticSimulations/FIGURES/extinctions_fct_R0.png)
 
 This figure illustrates how a CTMC SIS model will see a sizeable percentage of realisations with disease extinction despite values of $R_0$ larger than 1 and how this percentage further depends on the initial number I_0 of infectious individuals in the population.
