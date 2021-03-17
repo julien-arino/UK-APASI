@@ -69,14 +69,6 @@ nb_steps = ceiling(t_f/Delta_t)
 # While we are at it, make vector of times
 t = (1:nb_steps)*Delta_t
 
-sol = DTMC(tmat = T, io = IC, N = nb_steps, trace = FALSE)
-I = number_I(sol)
-I$time = t
-
-plot(I$time, I$state,
-     type = "l",
-     xlab = "Time (days)", ylab = "Number infectious")
-
 sol = MultDTMC(nchains = 20, tmat = T, io = IC, n = nb_steps)
 
 # Process solutions
