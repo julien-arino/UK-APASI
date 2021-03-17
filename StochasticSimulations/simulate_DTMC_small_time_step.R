@@ -27,8 +27,14 @@ R_0 = 1.5
 beta = R_0*gamma/(Pop-I_0)
 # Final time
 t_f = 100
-# Time step
-Delta_t = 1
+# Determine the maximum time step (nondiagonal entries)
+# On each row, the offdiagonal entries (without Delta_t) have weight
+# beta*(Pop-I)*I+gamma*I
+# For I in [0,Pop], the maximum is at I=(Pop*beta+gamma)/(2*beta) and equals
+# (gamma^2+2*Pop*beta*gamma+Pop^2*beta^2)/(4*beta)
+max_weight = (gamma^2+2*Pop*beta*gamma+Pop^2*beta^2)/(4*beta)
+# To make the time step a little smaller, take for instance
+Delta_t = 1/(0.05+max_weight)
 
 # Prepare I vector
 IC = mat.or.vec(nr = (Pop+1), nc = 1)
@@ -45,8 +51,8 @@ for (row in 2:(dim(T)[1]-1)) {
   T[row,(row+1)] = mv_left
 }
 # Last row only has move left
-T[(Pop+1),Pop] = gamma*(Pop)*Delta_t
-# Check that we don't have too large values
+T[(Pop+1),Pop] = gamma*(Pop-1)*Delta_t
+# Check that we don't have too large values (should not happen with Delta_t chosen)
 if (max(rowSums(T))>1) {
   writeLines("max(rowSums(T))>1, scaling")
   max_T = max(rowSums(T))
@@ -54,20 +60,24 @@ if (max(rowSums(T))>1) {
 }
 diag(T) = 1-rowSums(T)
 
-library(markovchain)
-
 # Initial condition
 # By putting all weight in one compartment, we fix an initial condition
 IC[(I_0+1)] = 1
 
-sol = DTMC(tmat = T, io = IC, N = t_f, trace = FALSE)
+# Need to change final time, since it is in number of steps
+nb_steps = ceiling(t_f/Delta_t)
+# While we are at it, make vector of times
+t = (1:nb_steps)*Delta_t
+
+sol = DTMC(tmat = T, io = IC, N = nb_steps, trace = FALSE)
 I = number_I(sol)
+I$time = t
 
 plot(I$time, I$state,
      type = "l",
      xlab = "Time (days)", ylab = "Number infectious")
 
-sol = MultDTMC(nchains = 20, tmat = T, io = IC, n = t_f)
+sol = MultDTMC(nchains = 20, tmat = T, io = IC, n = nb_steps)
 
 # Process solutions
 # We want to show trajectories that go to zero differently from those that go endemic,
@@ -76,6 +86,7 @@ I = list()
 I_max = 0
 for (i in 1:length(sol)) {
   I[[i]] = number_I(sol[[i]])
+  I[[i]]$time = t
   if (max(I[[i]]$state)>I_max) {
     I_max = max(I[[i]]$state)
   }
@@ -115,10 +126,10 @@ mcSIS <- new("markovchain",
              name = "SIS")
 
 # For fun, plot the chain digraph
-png(file = sprintf("%s/FIGURES/DTMC_plot.png", here::here()),
+png(file = sprintf("%s/FIGURES/DTMC_digraph.png", here::here()),
     width = 1200, height = 800, res = 200)
 plot(mcSIS)
 dev.off()
-crop_figure(sprintf("%s/FIGURES/DTMC_plot.png", here::here()))
+crop_figure(sprintf("%s/FIGURES/DTMC_digraph.png", here::here()))
 
 meanAbsorptionTime(mcSIS)

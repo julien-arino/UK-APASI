@@ -102,7 +102,7 @@ params_vary = list()
 # Vary R_0 and I_0
 i = 1
 for (I_0 in values_I_0) {
-  for (R_0 in c(seq(0.5, 3, by = 0.05))) {
+  for (R_0 in c(seq(0.5, 3, by = 0.025))) {
     for (j in 1:params$number_sims) {
       params_vary[[i]] = list()
       params_vary[[i]]$R_0 = R_0
