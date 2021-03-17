@@ -7,7 +7,9 @@ Simple illustration of the use of `deSolve` to plot several solutions to the SIS
 
 ![](FIGURES/ODE_SIS.png)
 
-<img src="FIGURES/ODE_SIS.png" width="500" class="center">
+<div style="text-align: center;">
+<img src="FIGURES/ODE_SIS.png" width="800">
+</div>
 
 ## `simulate_DTMC.R` and `simulate_DTMC_small_time_step.R`
 Simulation of the SIS as a discrete-time Markov chain using a random walk. Demonstrates the use of the libraries `DTMCPack` and `markovchain`. Among other things, produces the following figure (using the version with small time step).
